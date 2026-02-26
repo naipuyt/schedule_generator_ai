@@ -13,6 +13,6 @@ class Task {
 
   @override
   String toString() {
-    return 'task {name: $name, priority:$priority, duration:$duration, deadline:$deadline }';
+    return 'task {name: $name, priority: $priority, duration:$duration, deadline:$deadline }';
   }
 }

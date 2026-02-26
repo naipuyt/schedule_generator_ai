@@ -1,0 +1,2 @@
+endcode : adalah bahasa yang udah di convert ke bahasa yang lebih di mengerti sama dart
+decode: adalah kode mentah, yang belum di convert
