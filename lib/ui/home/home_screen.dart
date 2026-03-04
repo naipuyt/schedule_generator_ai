@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:schedule_generator_ai/models/task.dart';
 import 'package:schedule_generator_ai/services/gemini_services.dart';
+import 'package:schedule_generator_ai/ui/home/components/add_task_cart.dart';
+import 'package:schedule_generator_ai/ui/home/components/schedule_result_card.dart';
+import 'package:schedule_generator_ai/ui/home/components/task_list_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,23 +13,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // utk proses generating schedule -> AI
   bool isLoading = false;
-  final List<Task> tasks = []; // wadah untuk menampung input task dari user
-  String scheduleResult = ''; // wadah untuk menampung hasil generate schedule dari gemini
+  final List<Task> tasks = [];
+  String scheduleResult = '';
   final GeminiService geminiService = GeminiService();
 
   Future<void> _generateSchedule() async {
+    // proses masih jalan, loading
     setState(() => isLoading = true);
+
     try {
+      // await : nunggu si gemini udh beres apa blm, inikan 2 proses ya
       String schedule = await geminiService.generateSchedule(tasks);
       setState(() => scheduleResult = schedule);
     } catch (e) {
+      // klo error muncul di debug consol
       setState(() => scheduleResult = e.toString());
     }
-    setState(() => isLoading = false);
-
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,9 +43,18 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.all(16),
         children: [
           _buildHeader(),
-          //letakkan components add task card disini
-          //letakkan components task list disini
-          _buildGenerateButton()
+          // perubahan state
+          AddTaskCard(onAddTask: (task) => setState(() => tasks.add(task))),
+          SizedBox(height: 16),
+          TaskListSession(
+            tasks: tasks,
+            // ignore: collection_methods_unrelated_type
+            onDelete: (index) => setState(() => tasks.removeAt(index)), // menghapus task berdasarkan indexnya
+          ),
+          SizedBox(height: 16),
+          _BUildGenerateButton(),
+          SizedBox(height: 16,),
+          ScheduleResultCard(schedule: scheduleResult)
         ],
       ),
     );
@@ -56,12 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
+          // emoji sparkling
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12)
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               Icons.auto_awesome_rounded,
@@ -69,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(width: 12),
-          // contentnya memenuhi ruang yang ada
+          // biar content memenuhi ruang kosong yang ada (teks nya rapih)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,25 +92,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   "Plan your day faster",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  )
+                    fontWeight: FontWeight.w700
+
+                  ),
                 ),
                 Text(
-                  "Add tasks and generate",
+                  "add tasks and generate",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface
+                    color: Theme.of(context).colorScheme.onSurfaceVariant
                   ),
                 )
               ],
             ),
           ),
+          //ini yang kanan atas 
           Chip(label: Text('${tasks.length} task'))
         ],
       ),
     );
   }
 
-  Widget _buildGenerateButton() {
+  // ignore: non_constant_identifier_names
+  Widget _BUildGenerateButton() {
+    // bisa ini bisa elevated button
     return FilledButton.icon(
       onPressed: (isLoading || tasks.isEmpty) ? null : _generateSchedule,
       icon: isLoading
@@ -108,5 +127,4 @@ class _HomeScreenState extends State<HomeScreen> {
         label: Text(isLoading ? 'Generating...' : 'Generate Schedule'),
     );
   }
-
 }
